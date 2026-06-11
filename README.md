@@ -15,6 +15,7 @@ Detailed documentation for all modules can be found in [docs](docs)
 * [DockingTreeAnimation](docs/dockingtreeanimation) - Automatically animate the docking hierarchy of any project. Limited customizability.
 * [GetDockingTree](docs/getdockingtree) - A single function which creates a JSON representation of the docking hierarchy of a scene.
 * [Parts](docs/parts) - A powerful abstraction layer in dealing with and keeping track of mesh scene contents.
+* [CameraFocus](docs/camerafocus) - Focus the camera on specified scene contents.
 
 ## Installing VisLogicUtilities in your project
 Download a release .zip archive and extract it into the `visualLogic` folder of your local VizStudio project files.
