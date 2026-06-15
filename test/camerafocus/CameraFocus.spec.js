@@ -45,7 +45,7 @@ describe("CameraFocus", () => {
             // perpX=xLen=1, perpY=yLen=1 → perpMax=1 matches perpY → uses vertical FoV
             // halfFoV=45°, adjacent = 0.5/tan(45°) = 0.5, depth=1 → distance = 0.5+0.5 = 1
             currentBB = makeBB([-0.5, -0.5, -0.5], [0.5, 0.5, 0.5]);
-            CameraFocus.focus([], 90);
+            CameraFocus.focus({ sceneObjects: [], cameraFoV: 90 });
 
             expect(lookAtCalls).to.have.length(1);
             const { center, pos } = lookAtCalls[0];
@@ -59,7 +59,7 @@ describe("CameraFocus", () => {
             // bufferDistance=1: opposite=(1+1)/2=1, adjacent=1/tan(45°)=1, depth=1
             // distance = 0.5 + 1 = 1.5
             currentBB = makeBB([-0.5, -0.5, -0.5], [0.5, 0.5, 0.5]);
-            CameraFocus.focus([], 90, 1);
+            CameraFocus.focus({ sceneObjects: [], cameraFoV: 90, bufferDistance: 1 });
 
             const { pos } = lookAtCalls[0];
             expect(pos[2]).to.be.closeTo(1.5, EPSILON);
@@ -67,7 +67,7 @@ describe("CameraFocus", () => {
 
         it("computes center point correctly for an offset bounding box", () => {
             currentBB = makeBB([0, 0, 0], [4, 4, 4]);
-            CameraFocus.focus([], 90);
+            CameraFocus.focus({ sceneObjects: [], cameraFoV: 90 });
 
             const { center } = lookAtCalls[0];
             expect(center).to.deep.equal([2, 2, 2]);
@@ -77,7 +77,7 @@ describe("CameraFocus", () => {
             // dx=1, dy=0, dz≈0; perpX=zLen=1, perpY=yLen=1 → uses vertical FoV
             // depth=xLen=1, distance=1, camera = center + [1,0,0]*1
             currentBB = makeBB([-0.5, -0.5, -0.5], [0.5, 0.5, 0.5]);
-            CameraFocus.focus([], 90, 0, 90);
+            CameraFocus.focus({ sceneObjects: [], cameraFoV: 90, horizontalAngle: 90 });
 
             const { pos } = lookAtCalls[0];
             expect(pos[0]).to.be.closeTo(1, EPSILON);
@@ -87,7 +87,7 @@ describe("CameraFocus", () => {
 
         it("places camera along -X at horizontalAngle=-90", () => {
             currentBB = makeBB([-0.5, -0.5, -0.5], [0.5, 0.5, 0.5]);
-            CameraFocus.focus([], 90, 0, -90);
+            CameraFocus.focus({ sceneObjects: [], cameraFoV: 90, horizontalAngle: -90 });
 
             const { pos } = lookAtCalls[0];
             expect(pos[0]).to.be.closeTo(-1, EPSILON);
@@ -99,7 +99,7 @@ describe("CameraFocus", () => {
             // dy=1/√2, dz=1/√2; perpY=1 > perpX=1/√2 → uses vertical FoV=90
             // depth=√2, opposite=0.5, adjacent=0.5, distance=√2/2+0.5
             currentBB = makeBB([-0.5, -0.5, -0.5], [0.5, 0.5, 0.5]);
-            CameraFocus.focus([], 90, 0, 0, 45);
+            CameraFocus.focus({ sceneObjects: [], cameraFoV: 90, verticalAngle: 45 });
 
             const s = 1 / Math.sqrt(2);
             const expectedDistance = Math.sqrt(2) / 2 + 0.5;
@@ -113,7 +113,7 @@ describe("CameraFocus", () => {
             // Tall box: perpX=xLen=1, perpY=yLen=10 → uses vertical FoV=90
             // opposite=5, adjacent=5/tan(45°)=5, depth=zLen=1 → distance=5.5
             currentBB = makeBB([-0.5, -5, -0.5], [0.5, 5, 0.5]);
-            CameraFocus.focus([], 90);
+            CameraFocus.focus({ sceneObjects: [], cameraFoV: 90 });
 
             const { pos } = lookAtCalls[0];
             expect(pos[2]).to.be.closeTo(5.5, EPSILON);
@@ -126,7 +126,7 @@ describe("CameraFocus", () => {
             // opposite=5, adjacent=5/2=2.5, depth=1 → distance=0.5+2.5=3
             installFakeCore({ width: 2, height: 1 });
             currentBB = makeBB([-5, -0.5, -0.5], [5, 0.5, 0.5]);
-            CameraFocus.focus([], 90);
+            CameraFocus.focus({ sceneObjects: [], cameraFoV: 90 });
 
             const { pos } = lookAtCalls[0];
             expect(pos[2]).to.be.closeTo(3, EPSILON);
@@ -139,14 +139,14 @@ describe("CameraFocus", () => {
                 return makeBB([0, 0, 0], [1, 1, 1]);
             };
             const fakeObjects = [{ id: "A" }, { id: "B" }];
-            CameraFocus.focus(fakeObjects, 90);
+            CameraFocus.focus({ sceneObjects: fakeObjects, cameraFoV: 90 });
 
             expect(receivedObjects).to.equal(fakeObjects);
         });
 
         it("calls lookAt exactly once per focus() invocation", () => {
             currentBB = makeBB([0, 0, 0], [1, 1, 1]);
-            CameraFocus.focus([], 90);
+            CameraFocus.focus({ sceneObjects: [], cameraFoV: 90 });
             expect(lookAtCalls).to.have.length(1);
         });
 
@@ -156,13 +156,45 @@ describe("CameraFocus", () => {
             // depth=xLen=1, perpX=zLen=1, perpY=yLen=1 → distance=1
             // camera = [10.5+1, 20.5, 30.5+≈0]
             currentBB = makeBB([10, 20, 30], [11, 21, 31]);
-            CameraFocus.focus([], 90, 0, 90);
+            CameraFocus.focus({ sceneObjects: [], cameraFoV: 90, horizontalAngle: 90 });
 
             const { center, pos } = lookAtCalls[0];
             expect(center).to.deep.equal([10.5, 20.5, 30.5]);
             expect(pos[0]).to.be.closeTo(11.5, EPSILON);
             expect(pos[1]).to.be.closeTo(20.5, EPSILON);
             expect(pos[2]).to.be.closeTo(30.5, EPSILON);
+        });
+
+        it("shifts the lookAt center by offsetVector without affecting camera position", () => {
+            currentBB = makeBB([-0.5, -0.5, -0.5], [0.5, 0.5, 0.5]);
+            CameraFocus.focus({ sceneObjects: [], cameraFoV: 90, offsetVector: [1, 2, 3] });
+
+            const { center, pos } = lookAtCalls[0];
+            expect(center[0]).to.be.closeTo(1, EPSILON);
+            expect(center[1]).to.be.closeTo(2, EPSILON);
+            expect(center[2]).to.be.closeTo(3, EPSILON);
+            // Camera position is calculated from the unshifted bounding-box center
+            expect(pos[0]).to.be.closeTo(0, EPSILON);
+            expect(pos[1]).to.be.closeTo(0, EPSILON);
+            expect(pos[2]).to.be.closeTo(1, EPSILON);
+        });
+
+        it("defaults offsetVector to [0,0,0] when not provided", () => {
+            currentBB = makeBB([-0.5, -0.5, -0.5], [0.5, 0.5, 0.5]);
+            CameraFocus.focus({ sceneObjects: [], cameraFoV: 90 });
+
+            const { center } = lookAtCalls[0];
+            expect(center).to.deep.equal([0, 0, 0]);
+        });
+
+        it("throws TypeError when sceneObjects is missing", () => {
+            currentBB = makeBB([0, 0, 0], [1, 1, 1]);
+            expect(() => CameraFocus.focus({ cameraFoV: 90 })).to.throw(TypeError, /sceneObjects/);
+        });
+
+        it("throws TypeError when cameraFoV is missing", () => {
+            currentBB = makeBB([0, 0, 0], [1, 1, 1]);
+            expect(() => CameraFocus.focus({ sceneObjects: [] })).to.throw(TypeError, /cameraFoV/);
         });
     });
 });

@@ -15,21 +15,26 @@ in [src/camerafocus/CameraFocus.js](src/camerafocus/CameraFocus.js).
 import { CameraFocus } from "./VisLogicUtilities/src/camerafocus/CameraFocus.js";
 //use
 let myObj = core.scene.create(core.assets("some/asset"));
-CameraFocus.focus([myObj], 70); //minimal parameters
-CameraFocus.focus([myObj], 70, 3, 20, 10); //minimal parameters. 3 Meters buffer distance, 20° horizontal angle, 10° vertical angle
+CameraFocus.focus({ sceneObjects: [myObj], cameraFoV: 70 }); //minimal parameters
+CameraFocus.focus({ sceneObjects: [myObj], cameraFoV: 70, bufferDistance: 3, horizontalAngle: 20, verticalAngle: 10 }); //with optional parameters
+CameraFocus.focus({ sceneObjects: [myObj], cameraFoV: 70, offsetVector: [0, 1, 0] }); //shift the rotation center upward by 1 meter
 ```
 
 ## Public Functions
 These are the supported public functions you can use in your code.
 
-### focus(sceneObjects, cameraFoV, bufferDistance, horizontalAngle, verticalAngle)
-Focuses the camera on the specified scene objects. This will perform a core.scene.camera.lookAt() with the center point being the center of the combined bounding boxes of all specified scene objects. The camera position will be calculated based on the other parameters.
+### focus(options)
+Focuses the camera on the specified scene objects. This will perform a `core.scene.camera.lookAt()` with the rotation center being the center of the combined bounding boxes of all specified scene objects (shifted by `offsetVector` if provided). The camera position is calculated from the remaining parameters.
 
 **Parameters**
-| Name | Type | Description | Default |
-| ---- | ---- | ---- | ---- |
-| `sceneObjects` | `core.SceneObject[]` | List of sceneObjects that you want to focus on. The rotation center of the camera will be at the center point of the combined axis-aligned bounding boxes of all of these. | |
-| `cameraFoV` | `Number` | Vertical Field of View angle in degrees of the currently active camera. Required for accurate calculations. | |
-| `bufferDistance` | `Number` | Optional. Distance in meters that is added to the edges of the resulting frame. Gives users finer control over the zoom level of the result. | `0`|
-| `horizontalAngle` | `Number` | Optional. Horizontal angle in degrees counter-clockwise relative to looking down the Z axis. | `0`|
-| `verticalAngle` | `Number` | Optional. Vertical angle in degrees counter-clockwise relative to looking down the Z axis. | `0`|
+
+`options` is a plain object with the following properties:
+
+| Name | Type | Required | Description | Default |
+| ---- | ---- | ---- | ---- | ---- |
+| `sceneObjects` | `core.SceneObject[]` | yes | List of sceneObjects to focus on. The rotation center of the camera will be at the center point of the combined axis-aligned bounding boxes of all of these. | |
+| `cameraFoV` | `Number` | yes | Vertical Field of View angle in degrees of the currently active camera. Required for accurate calculations. | |
+| `bufferDistance` | `Number` | no | Distance in meters added to the edges of the resulting frame. Gives finer control over the zoom level of the result. | `0` |
+| `horizontalAngle` | `Number` | no | Horizontal angle in degrees counter-clockwise relative to looking down the Z axis. | `0` |
+| `verticalAngle` | `Number` | no | Vertical angle in degrees counter-clockwise relative to looking down the Z axis. | `0` |
+| `offsetVector` | `Number[3]` | no | XYZ offset applied to the bounding-box center point before passing it as the rotation center to `lookAt`. Does not affect the computed camera position. | `[0, 0, 0]` |
