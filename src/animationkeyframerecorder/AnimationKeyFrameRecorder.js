@@ -1,26 +1,25 @@
 const AXIS = ["x", "y", "z"];
 
-const PROPERTY_MAP = {
+const ANIMATION_PROPERTY_MAP = {
   dockingRotation:    "rotation",
   dockingTranslation: "position",
 };
 
-function toKeyFrameProperty(parameters) {
-  const { key, index } = parseParam(parameters);
-  const mapped = PROPERTY_MAP[key];
-  if (mapped && index !== null) return `${mapped}.${AXIS[index]}`;
-  return parameters;
+function toAnimationProperty({ property, index }) {
+  const mapped = ANIMATION_PROPERTY_MAP[property] ?? property;
+  if (index !== null) return `${mapped}.${AXIS[index]}`;
+  return mapped;
 }
 
 function parseParam(param) {
   const m = param.match(/^(\w+)\[(\d+)\]$/);
   return m
-    ? { key: m[1], index: Number(m[2]) }
-    : { key: param, index: null };
+    ? { property: m[1], index: Number(m[2]) }
+    : { property: param, index: null };
 }
 
-function getValue(obj, { key, index }) {
-  let val = obj[key];
+function getValue(obj, { property, index }) {
+  let val = obj[property];
   if (index !== null) val = Math.round(val[index] * 10000) / 10000
   return val;
 }
@@ -67,15 +66,15 @@ export class AnimationKeyFrameRecorder {
   /**
    * Configures the recorder. Must be called before `record()`.
    *
-   * @param {Object} settings
-   * @param {Object} settings.parts - Map of part name to `core.SceneObject`. The same object passed to `SyncAnimationsPlayer`.
-   * @param {Array<Object>} settings.records - List of property descriptors to record. Each entry:
+   * @propertyEntry {Object} settings
+   * @param {Object} propertyEntry.parts - Map of part name to `core.SceneObject`. The same object passed to `SyncAnimationsPlayer`.
+   * @param {Array<Object>} propertyEntry.records - List of property descriptors to record. Each entry:
    *   - `partName` {string} — key in `settings.parts` identifying the scene object to sample
    *   - `dpName` {string} — key used for this track in the `getKeyFrames()` output
    *   - `parameters` {string} — property to read (e.g. `"dockingRotation[1]"`, `"position"`).
    *     Docking properties with index are automatically mapped to their axis component — see the
    *     [parameters mapping table](docs/animationkeyframerecorder/README.md#the-parameters-format) in the docs.
-   * @param {string} [settings.name] - Optional name for the recording (used in debug output).
+   * @param {string} [propertyEntry.name] - Optional name for the recording (used in debug output).
    */
   init(settings) {
   	core.log.debug("[AnimationKeyFrameRecorder] init", settings)
@@ -96,8 +95,8 @@ export class AnimationKeyFrameRecorder {
       return {
         partName:   p.partName,
         dpName:     p.dpName,
-        parameters: p.parameters,
-        param:      parseParam(p.parameters),
+        partProperty: p.parameters,
+        partPropertyEntry:      parseParam(p.parameters),
       };
     });
 
@@ -122,7 +121,7 @@ export class AnimationKeyFrameRecorder {
       const partRef = this._parts[rec.partName];
       this._keyframes[rec.dpName].push({
         time:  time_ms / 1000,
-        value: getValue(partRef, rec.param),
+        value: getValue(partRef, rec.partPropertyEntry),
       });
     }
   }
@@ -146,7 +145,7 @@ export class AnimationKeyFrameRecorder {
     for (const rec of this._records) {
       result[rec.dpName] = {
         parts:    [rec.partName],
-        property: toKeyFrameProperty(rec.parameters),
+        property: toAnimationProperty(rec.partPropertyEntry),
         frames:   this._keyframes[rec.dpName],
       };
     }

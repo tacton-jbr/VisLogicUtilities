@@ -45,17 +45,20 @@ recorder.printKeyFramesJson(); // log result → save as .json → import in pro
 
 The `parameters` string in each record entry controls which property is read from the scene object and what name it gets in the output keyframe data.
 
-Plain property names are passed through as-is. Indexed docking properties are automatically mapped to their axis component:
+Docking property names are always remapped to their KeyframeTrack equivalent. The `[n]` index is optional — without it the base property name is returned; with it the corresponding axis component (`.x`, `.y`, `.z`) is appended:
 
-| `parameters` value       | resulting keyframe property |
-| ------------------------ | --------------------------- |
-| `"dockingRotation[0]"`   | `"rotation.x"`              |
-| `"dockingRotation[1]"`   | `"rotation.y"`              |
-| `"dockingRotation[2]"`   | `"rotation.z"`              |
-| `"dockingTranslation[0]"` | `"position.x"`             |
-| `"dockingTranslation[1]"` | `"position.y"`             |
-| `"dockingTranslation[2]"` | `"position.z"`             |
-| `"position"` *(plain)*   | `"position"` *(unchanged)*  |
+| `parameters` value        | resulting keyframe property |
+| ------------------------- | --------------------------- |
+| `"dockingRotation"`       | `"rotation"`                |
+| `"dockingRotation[0]"`    | `"rotation.x"`              |
+| `"dockingRotation[1]"`    | `"rotation.y"`              |
+| `"dockingRotation[2]"`    | `"rotation.z"`              |
+| `"dockingTranslation"`    | `"position"`                |
+| `"dockingTranslation[0]"` | `"position.x"`              |
+| `"dockingTranslation[1]"` | `"position.y"`              |
+| `"dockingTranslation[2]"` | `"position.z"`              |
+| `"position"` *(plain)*    | `"position"` *(unchanged)*  |
+| `"position[0]"` *(plain)* | `"position.x"` *(unchanged)* |
 
 ## Public Functions
 
