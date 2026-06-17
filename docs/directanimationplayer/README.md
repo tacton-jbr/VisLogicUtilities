@@ -2,7 +2,7 @@
 
 A module for quickly animating a single property of a scene object from one value to another using **linear interpolation**.
 
-This module wraps the VisLogic animation API (`core.KeyframeTrack`, `core.Animation`, `core.AnimationPlayer`) into a minimal interface. It creates a two-keyframe animation that linearly interpolates the given property from `startValue` to `endValue` over the specified duration. There is no easing — the value changes at a constant rate throughout. For anything more complex (custom easing, multiple tracks, chained animations) use the core animation API directly.
+This module wraps the VisLogic animation API (`core.KeyframeTrack`, `core.Animation`, `core.AnimationPlayer`) into a minimal interface. It creates a two-keyframe animation that linearly interpolates the given property from `startValue` to `endValue` over the specified `duration`.
 
 For a detailed documentation of the public functions, please see the JSDoc comments
 in [src/directanimationplayer/DirectAnimationPlayer.js](src/directanimationplayer/DirectAnimationPlayer.js).
