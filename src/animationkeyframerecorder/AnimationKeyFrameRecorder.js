@@ -25,6 +25,29 @@ function getValue(obj, { key, index }) {
   return val;
 }
 
+/**
+ * **Development tool** — not intended for use at runtime in a production VisLogic.
+ *
+ * Use this class during development to sample property values of scene objects over time
+ * and produce a keyframe dataset compatible with `SyncAnimationsPlayer`. Once you are happy
+ * with the recorded output, save the result of `printKeyFramesJson()` as a `.json` file in your
+ * project — VisLogic supports JSON imports, so you can import it directly and pass it to
+ * `SyncAnimationsPlayer` at runtime.
+ *
+ * Typical workflow:
+ * 1. `init(settings)` — configure which parts and properties to record
+ * 2. Drive scene changesin small steps (e.g. via `DirectAnimationPlayer` or by direct property changes) and call `record(time_ms)` at each frame
+ * 3. `printKeyFramesJson()` — log the result and save it as a `.json` file in your project
+ *
+ * @example
+ * const recorder = new AnimationKeyFrameRecorder();
+ * recorder.init({ parts, records: [{ partName: "arm", dpName: "arm_rot", parameters: "dockingRotation[1]" }] });
+ * // initialize your scene here
+ * recorder.record(0);
+ * // update your scene here
+ * recorder.record(500);
+ * recorder.printKeyFramesJson(); // prints the keyframe data to the log, so you can copy it into your project
+ */
 export class AnimationKeyFrameRecorder {
   constructor() {
   	core.log.debug("[AnimationKeyFrameRecorder] constructor")
@@ -32,9 +55,28 @@ export class AnimationKeyFrameRecorder {
     this._parts = null;
     this._records = [];
     this._keyframes = {};
+    /**
+     * Optional hook called at the start of each `record()` call, before any values are sampled.
+     * Use this to trigger scene updates (e.g. applying transforms) that should be captured in the frame.
+     * Receives the current timestamp in milliseconds. Errors thrown here are caught and logged.
+     * @type {((time_ms: number) => void) | null}
+     */
     this.onBeforeFrameRecord = null;
   }
 
+  /**
+   * Configures the recorder. Must be called before `record()`.
+   *
+   * @param {Object} settings
+   * @param {Object} settings.parts - Map of part name to `core.SceneObject`. The same object passed to `SyncAnimationsPlayer`.
+   * @param {Array<Object>} settings.records - List of property descriptors to record. Each entry:
+   *   - `partName` {string} — key in `settings.parts` identifying the scene object to sample
+   *   - `dpName` {string} — key used for this track in the `getKeyFrames()` output
+   *   - `parameters` {string} — property to read (e.g. `"dockingRotation[1]"`, `"position"`).
+   *     Docking properties with index are automatically mapped to their axis component — see the
+   *     [parameters mapping table](docs/animationkeyframerecorder/README.md#the-parameters-format) in the docs.
+   * @param {string} [settings.name] - Optional name for the recording (used in debug output).
+   */
   init(settings) {
   	core.log.debug("[AnimationKeyFrameRecorder] init", settings)
     if (!settings?.records || !Array.isArray(settings.records)) {
@@ -62,6 +104,11 @@ export class AnimationKeyFrameRecorder {
     this._keyframes = Object.fromEntries(this._records.map(r => [r.dpName, []]));
   }
 
+  /**
+   * Samples the current values of all configured properties and stores them as a keyframe at `time_ms`.
+   * `onBeforeFrameRecord` is invoked first if set, allowing scene state to be updated before sampling.
+   * @param {number} time_ms - Timestamp of the frame in milliseconds.
+   */
   record(time_ms) {
   	core.log.debug("[AnimationKeyFrameRecorder] record", time_ms)
     if (!this._records.length) {
@@ -89,6 +136,11 @@ export class AnimationKeyFrameRecorder {
     }
   }
 
+  /**
+   * Returns the recorded keyframe data in the format expected by `SyncAnimationsPlayer`.
+   * Each key in the result corresponds to the `dpName` of a record entry.
+   * @returns {Object} An `animations` object ready to pass directly to `new SyncAnimationsPlayer(animations, parts)`.
+   */
   getKeyFrames() {
     const result = {};
     for (const rec of this._records) {
@@ -101,47 +153,18 @@ export class AnimationKeyFrameRecorder {
     return result;
   }
 
+  /** Logs the current keyframe data via `core.log.debug`. Useful for inspecting recorded output during development. */
   printKeyFramesJson() {
   	core.log.debug("[AnimationKeyFrameRecorder] printKeyFramesJson", this._name)
     core.log.debug(this.getKeyFrames());
   }
 
+  /** Clears all recorded keyframes and resets to an uninitialized state. Call `init()` again before recording. */
   reset() {
     this._records = [];
     this._keyframes = {};
     this.onBeforeFrameRecord = null;
     core.log.debug("[AnimationKeyFrameRecorder] Reset.");
   }
-
-
-  //-------------------------------
-
-  /*
-  static startFrameRecorder() {
-    let recorder = new AnimationKeyFrameRecorder();
-    recorder.init(settings);
-    recorder.onBeforeFrameRecord = (time_ms) => {};
-    
-    var time_ms = 0;
-    function recordFrame() {
-      if (time_ms > DURATION_MS) {
-        recorder.printKeyFramesJson()
-        return
-      }
-      recorder.record(time_ms);
-    
-      const startAngle  = VALUE_START + (time_ms / FRAME_TIME_MS) * VALUE_CHANGE
-      const endAngle  = startAngle + VALUE_CHANGE		
-        
-        runAnimation(parts.backrest, "rotation.y", FRAME_TIME_MS / 1000, startAngle, endAngle, () => {
-        retargetCylinderParts(endAngle)
-        core.log.debug("Animation finished for time_ms =", time_ms, endAngle)
-        recordFrame()
-      })
-      
-        time_ms += FRAME_TIME_MS;
-    }
-    
-  }*/
 
 }

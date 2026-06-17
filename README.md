@@ -18,6 +18,7 @@ Detailed documentation for all modules can be found in [docs](docs)
 * [CameraFocus](docs/camerafocus) - Focus the camera on specified scene contents.
 * [DirectAnimationPlayer](docs/directanimationplayer) - Linearly animate a single property of a scene object from one value to another.
 * [SyncAnimationsPlayer](docs/syncanimationsplayer) - Play multiple keyframe animations simultaneously across multiple parts with a single completion callback.
+* [AnimationKeyFrameRecorder](docs/animationkeyframerecorder) - Development tool for recording scene property values over time and producing keyframe datasets for SyncAnimationsPlayer.
 
 ## Installing VisLogicUtilities in your project
 Download a release .zip archive and extract it into the `visualLogic` folder of your local VizStudio project files.
