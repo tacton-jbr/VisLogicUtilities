@@ -22,7 +22,6 @@ export class SyncAnimationsPlayer {
 	 * @param {Object} parts - Map of part name to `core.SceneObject`.
 	 */
 	constructor(animations, parts) {
-		core.log.debug("[SyncAnimationsPlayer] constructor")
 		this._players = []
 		for (const animName of Object.keys(animations)) {
 			const entry = animations[animName]
@@ -73,7 +72,6 @@ export class SyncAnimationsPlayer {
  * runAnimationsSync(animations, parts, () => console.log("all done"));
  */
 export function runAnimationsSync(animations, parts, onAllFinished) {
-	core.log.debug("[runAnimationsSync]")
 	const player = new SyncAnimationsPlayer(animations, parts)
 	player.start(onAllFinished)
 }

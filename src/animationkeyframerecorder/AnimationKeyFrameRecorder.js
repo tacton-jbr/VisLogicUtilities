@@ -49,7 +49,6 @@ function getValue(obj, { property, index }) {
  */
 export class AnimationKeyFrameRecorder {
   constructor() {
-  	core.log.debug("[AnimationKeyFrameRecorder] constructor")
     this._name = null;
     this._parts = null;
     this._records = [];
@@ -77,7 +76,6 @@ export class AnimationKeyFrameRecorder {
    * @param {string} [propertyEntry.name] - Optional name for the recording (used in debug output).
    */
   init(settings) {
-  	core.log.debug("[AnimationKeyFrameRecorder] init", settings)
     if (!settings?.records || !Array.isArray(settings.records)) {
       throw new Error("AnimationKeyFrameRecorder.init: settings.records must be an array");
     }
@@ -109,7 +107,6 @@ export class AnimationKeyFrameRecorder {
    * @param {number} time_ms - Timestamp of the frame in milliseconds.
    */
   record(time_ms) {
-  	core.log.debug("[AnimationKeyFrameRecorder] record", time_ms)
     if (!this._records.length) {
       core.log.warn("[AnimationKeyFrameRecorder] Not initialized. Call init() first.");
       return;
@@ -163,7 +160,6 @@ export class AnimationKeyFrameRecorder {
     this._records = [];
     this._keyframes = {};
     this.onBeforeFrameRecord = null;
-    core.log.debug("[AnimationKeyFrameRecorder] Reset.");
   }
 
 }

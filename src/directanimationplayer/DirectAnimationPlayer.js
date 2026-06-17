@@ -19,7 +19,6 @@ export class DirectAnimationPlayer {
    * @param {number} duration - Duration of the animation in seconds.
    */
   constructor(part, property, startValue, endValue, duration) {
-  	core.log.debug("[AnimationKeyFrameRecorder] constructor")
   	let name = `DirectAnimationPlayer_${part.name}_${property}_${new Date().getTime()}`
   	this._track = new core.KeyframeTrack(name, property, {})
 	this._track.setKeys([{"time": 0, "value": startValue },{"time": duration, "value": endValue}])
@@ -62,7 +61,6 @@ export class DirectAnimationPlayer {
  * runAnimation(myPart, "position.x", 0, 1, 2, () => console.log("done"));
  */
 export function runAnimation(part, property, startValue, endValue, duration, onFinished) {
-	core.log.debug("[runAnimation]", part.asset.name, property, duration, startValue, endValue)
 	let player = new DirectAnimationPlayer(part, property, startValue, endValue, duration)
 	player.start(onFinished)
 }
