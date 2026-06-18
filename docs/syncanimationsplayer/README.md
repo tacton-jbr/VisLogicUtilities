@@ -4,8 +4,7 @@ A module for playing multiple keyframe animations across multiple scene objects 
 
 This module wraps the VisLogic animation API (`core.KeyframeTrack`, `core.Animation`, `core.AnimationPlayer`) to drive any number of scene objects across any number of animation tracks in parallel. It is intended for pre-baked keyframe data (e.g. recorded with `AnimationKeyFrameRecorder`). For simple two-point tweens, use [DirectAnimationPlayer](../directanimationplayer) instead.
 
-For a detailed documentation of the public functions, please see the JSDoc comments
-in [src/syncanimationsplayer/SyncAnimationsPlayer.js](src/syncanimationsplayer/SyncAnimationsPlayer.js).
+For a detailed documentation of the public functions, see the [Public Functions](#public-functions) section below or the JSDoc comments in [src/syncanimationsplayer/SyncAnimationsPlayer.js](src/syncanimationsplayer/SyncAnimationsPlayer.js).
 
 ## Using SyncAnimationsPlayer in VisLogic
 
@@ -46,7 +45,7 @@ The `animations` parameter is a plain object where each key is a freely chosen a
 ```javascript
 const animations = {
     // key: freely chosen animation name
-    base_movment: {
+    base_movement: {
         property: "position",       // property/component to animate
         frames: [                      // keyframe data
             { time: 0,   value: [0, 0, 0] }, // value at t=0s

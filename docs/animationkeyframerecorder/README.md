@@ -2,43 +2,114 @@
 
 **Development tool** — not intended for use at runtime in a production VisLogic.
 
-A utility for recording property values of scene objects over time and producing keyframe datasets compatible with `SyncAnimationsPlayer`. Drive your scene through its animation states step by step, call `record()` at each frame, then export the result as a `.json` file — VisLogic supports JSON imports, so you can import it directly and pass it to `SyncAnimationsPlayer` at runtime.
+A utility for recording property values of scene objects over time and producing keyframe datasets compatible with `SyncAnimationsPlayer`. Drive your scene through its animation states step by step, call `record()` at each frame, and once all keyframes have been recorded export the result as a `.json` file — VisLogic supports JSON imports, so you can import it directly and pass it to `SyncAnimationsPlayer` at runtime.
 
-For a detailed documentation of the public functions, please see the JSDoc comments
-in [src/animationkeyframerecorder/AnimationKeyFrameRecorder.js](src/animationkeyframerecorder/AnimationKeyFrameRecorder.js).
+For a detailed documentation of the public functions, see the [Public Functions](#public-functions) section below or the JSDoc comments in [src/animationkeyframerecorder/AnimationKeyFrameRecorder.js](src/animationkeyframerecorder/AnimationKeyFrameRecorder.js).
 
 ## Using AnimationKeyFrameRecorder in VisLogic
 
-```javascript
-// any file in vislogic (development only)
+Use this recorder when parts of your assembly move non-linearly — for example because their position is resolved by geometry or kinematics rather than driven directly. Step through the motion manually, compute the values at each frame, and record the results.
 
-// import
+### Sync variant — step through frames instantly with a `for`-loop
+
+The following example shows how to record all animation keyframes directly in a `for`-loop — without rendering each step live.
+```javascript
+// in a vislogic script that is for development only
+
 import { AnimationKeyFrameRecorder } from "./VisLogicUtilities/src/animationkeyframerecorder/AnimationKeyFrameRecorder.js";
 
-const parts = {
-    arm_1: core.scene.create(core.assets("robot/arm_1")),
-    arm_2: core.scene.create(core.assets("robot/arm_2")),
-}
+const parts = build_and_dock_all_parts_of_the_scene()
+
+// Arm is driven directly; cylinder extension and angle are derived from geometry each step
 
 const recorder = new AnimationKeyFrameRecorder();
 recorder.init({
+    name: "arm_lift_cycle",
     parts,
     records: [
-        { partName: "arm_1", dpName: "arm_1_rot_y", parameters: "dockingRotation[1]" },
-        { partName: "arm_2", dpName: "arm_2_rot_y", parameters: "dockingRotation[1]" },
+        // define all sceneObjects that should be animated, see the `parameters` table below for more details 
+        { partName: "arm",      dpName: "arm",        parameters: "dockingRotation[1]"    },
+        { partName: "piston",   dpName: "piston",     parameters: "dockingTranslation[2]" },
+        { partName: "cylinder", dpName: "cylinder",   parameters: "dockingRotation[0]"    },
     ],
 });
 
-// optionally: apply scene changes just before each frame is sampled
-recorder.onBeforeFrameRecord = (time_ms) => {
-    // e.g. update docking points or apply transforms
-};
+// Mounting distances (base-to-pivot and arm-to-piston, in scene units)
+const A = 0.8;
+const B = 1.2;
 
-recorder.record(0);     // sample at t=0ms
-recorder.record(500);   // sample at t=500ms
-recorder.record(1000);  // sample at t=1000ms
+function updateCylinderGeometry(armDeg) {
+    const armRad    = armDeg * (Math.PI / 180);
+    const extension = Math.sqrt(A * A + B * B - 2 * A * B * Math.cos(armRad));
+    parts.piston.dockingTranslation = [0, 0, extension];
 
-recorder.printKeyFramesJson(); // log result → save as .json → import in production VisLogic
+    const cylinderAngle = Math.atan2(B * Math.sin(armRad), A - B * Math.cos(armRad));
+    parts.cylinder.dockingRotation  = [cylinderAngle, 0, 0];
+}
+
+// Step from t = 0 to t = 3000 ms in 500 ms increments.
+// At each step: set the scene to the correct state, then record.
+for (let t = 0; t <= 3000; t += 500) {
+    const armDeg = (t / 3000) * 90;   // arm rotates linearly from 0° to 90°
+    parts.arm.dockingRotation = [0, armDeg, 0];
+
+    updateCylinderGeometry(armDeg);    // piston + cylinder angle are non-linear
+
+    recorder.record(t);   // sample all configured properties at this timestamp
+}
+
+recorder.printKeyFramesJson();
+// → Copy the logged JSON into a new file (.json)
+// → Import it in your production VisLogic and pass it to a SyncAnimationsPlayer
+```
+
+### Async variant — see each frame animate live as you record
+
+Use `runAnimation` from `DirectAnimationPlayer` if you want to see each step play out visually. Instead of a `for`-loop, a recursive function chains the frames: record the current state, animate to the next position, update the dependent geometry in the callback, then repeat.
+
+```javascript
+// in a vislogic script that is for development only
+
+import { AnimationKeyFrameRecorder } from "./VisLogicUtilities/src/animationkeyframerecorder/AnimationKeyFrameRecorder.js";
+import { runAnimation } from "./VisLogicUtilities/src/directanimationplayer/DirectAnimationPlayer.js";
+
+// Same parts and recorder setup as in the synchronous example above
+const parts = { /* ... */ };
+const recorder = new AnimationKeyFrameRecorder();
+recorder.init({ /* ... */ });
+
+const A = 0.8;
+const B = 1.2;
+const FRAME_MS  = 500;
+const DURATION_MS = 3000;
+const DEG_PER_FRAME = 90 * (FRAME_MS / DURATION_MS);  // constant angle step per frame
+
+// same as in the sync example above
+function updateCylinderGeometry(armDeg) { /* ... */ }
+
+
+
+let time_ms    = 0;
+let currentDeg = 0;
+
+function recordFrame() {
+    if (time_ms > DURATION_MS) {
+        recorder.printKeyFramesJson();
+        return;
+    }
+
+    recorder.record(time_ms);   // capture current state (arm + cylinder are already in position)
+
+    runAnimation(parts.arm, "rotation.y", currentDeg, currentDeg + DEG_PER_FRAME, FRAME_MS / 1000, () => {
+        currentDeg += DEG_PER_FRAME;
+        updateCylinderGeometry(currentDeg);  // arm has arrived — resolve dependent geometry
+        recordFrame();                        // record the new state, then animate to the next frame
+    });
+
+    time_ms += FRAME_MS;
+}
+
+recordFrame();  // direct kick off the process or put it in button click event
 ```
 
 ## The `parameters` Format
@@ -96,25 +167,13 @@ Each entry in `settings.records`:
 
 ### `record(time_ms)`
 
-Samples the current values of all configured properties and stores them as a keyframe. `onBeforeFrameRecord` is invoked first if set.
+Samples the current values of all configured properties and stores them as a keyframe.
 
 **Parameters**
 
 | Name | Type | Required | Description | Default |
 | ---- | ---- | ---- | ---- | ---- |
 | `time_ms` | `number` | yes | Timestamp of the frame in milliseconds. | |
-
----
-
-### `onBeforeFrameRecord`
-
-Optional hook, called at the start of each `record()` call before any values are sampled. Assign a function to apply scene changes that should be captured in the frame. Errors thrown inside the hook are caught and logged.
-
-```javascript
-recorder.onBeforeFrameRecord = (time_ms) => {
-    // apply scene state for this frame
-};
-```
 
 ---
 

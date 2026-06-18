@@ -4,8 +4,7 @@ A module for quickly animating a single property of a scene object from one valu
 
 This module wraps the VisLogic animation API (`core.KeyframeTrack`, `core.Animation`, `core.AnimationPlayer`) into a minimal interface. It creates a two-keyframe animation that linearly interpolates the given property from `startValue` to `endValue` over the specified `duration`.
 
-For a detailed documentation of the public functions, please see the JSDoc comments
-in [src/directanimationplayer/DirectAnimationPlayer.js](src/directanimationplayer/DirectAnimationPlayer.js).
+For a detailed documentation of the public functions, see the [Public Functions](#public-functions) section below or the JSDoc comments in [src/directanimationplayer/DirectAnimationPlayer.js](src/directanimationplayer/DirectAnimationPlayer.js).
 
 ## Using DirectAnimationPlayer in VisLogic
 

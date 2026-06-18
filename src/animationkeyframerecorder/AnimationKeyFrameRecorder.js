@@ -53,13 +53,6 @@ export class AnimationKeyFrameRecorder {
     this._parts = null;
     this._records = [];
     this._keyframes = {};
-    /**
-     * Optional hook called at the start of each `record()` call, before any values are sampled.
-     * Use this to trigger scene updates (e.g. applying transforms) that should be captured in the frame.
-     * Receives the current timestamp in milliseconds. Errors thrown here are caught and logged.
-     * @type {((time_ms: number) => void) | null}
-     */
-    this.onBeforeFrameRecord = null;
   }
 
   /**
@@ -103,7 +96,6 @@ export class AnimationKeyFrameRecorder {
 
   /**
    * Samples the current values of all configured properties and stores them as a keyframe at `time_ms`.
-   * `onBeforeFrameRecord` is invoked first if set, allowing scene state to be updated before sampling.
    * @param {number} time_ms - Timestamp of the frame in milliseconds.
    */
   record(time_ms) {
@@ -112,23 +104,12 @@ export class AnimationKeyFrameRecorder {
       return;
     }
 
-    this._invokeBeforeFrameRecord(time_ms);
-
     for (const rec of this._records) {
       const partRef = this._parts[rec.partName];
       this._keyframes[rec.dpName].push({
         time:  time_ms / 1000,
         value: getValue(partRef, rec.partPropertyEntry),
       });
-    }
-  }
-
-  _invokeBeforeFrameRecord(time_ms) {
-    if (typeof this.onBeforeFrameRecord !== "function") return;
-    try {
-      this.onBeforeFrameRecord(time_ms);
-    } catch (err) {
-     core.log.error("[AnimationKeyFrameRecorder] onBeforeFrameRecord error:", err.message);
     }
   }
 
@@ -159,7 +140,6 @@ export class AnimationKeyFrameRecorder {
   reset() {
     this._records = [];
     this._keyframes = {};
-    this.onBeforeFrameRecord = null;
   }
 
 }
