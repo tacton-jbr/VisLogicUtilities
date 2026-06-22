@@ -1,0 +1,14 @@
+{
+	"version": 1,
+	"attributes": {		
+		"dummy.variant": {
+			"domain": [
+				"dummy"
+			],
+			"type": "enum",
+			"multi_instanced": true
+		}
+	},
+	"customImageIds": [],
+	"floorPlanIds": []
+}

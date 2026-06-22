@@ -1,0 +1,25 @@
+{
+	"blend_mode": "opaque",
+	"id": "48571e4b04f24172ad264f3db14b6437",
+	"properties": {
+		"BaseColor": [
+			0.8001810312271118,
+			0.30303308367729187,
+			0.05213700234889984,
+			1.0
+		],
+		"EmissiveColor": [
+			1.0,
+			1.0,
+			1.0,
+			1.0
+		],
+		"OcclusionRoughnessMetallic": [
+			1.0,
+			0.3179999887943268,
+			0.2240000069141388
+		]
+	},
+	"type": "material",
+	"version": 7
+}
