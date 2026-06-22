@@ -1,4 +1,4 @@
-# RecordSyncAnimation — Example Project
+# Example project to record an arm rotation (animated)
 
 ## The Assembly
 
@@ -16,3 +16,7 @@ Because of this, a plain linear animation from start to end position would not w
 4. Open the VIZStudio **Asset Editor** and import all four FBX files from the `visualAssets/` folder.
 5. Start the VIZStudio **Preview**.
 6. The recording process starts immediately and prints the keyframe dataset JSON to the console.
+
+## VisLogic
+
+The full implementation is in [`visualLogic/main.js`](visualLogic/main.js).
