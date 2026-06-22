@@ -20,11 +20,11 @@ const myPart = core.scene.create(core.assets("my_example_part_asset"))
 runAnimation(myPart, "position.x", 0, 1, 2);
 
 // fire-and-forget with a callback when the animation finishes
-runAnimation(myPart, "position.x", 0, 1, 2, () => console.log("animation done"));
+runAnimation(myPart, "position.x", 0, 1, 2, () => core.log.debug("animation done"));
 
 // or use the class directly to keep a reference to the player
 let player = new DirectAnimationPlayer(myPart, "position.x", 0, 1, 2);
-player.start(() => console.log("animation done"));
+player.start(() => core.log.debug("animation done"));
 
 // access the underlying core.AnimationPlayer for advanced control (e.g. stop mid-way)
 player.getPlayer().stop();

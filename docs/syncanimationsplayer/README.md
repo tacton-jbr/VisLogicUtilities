@@ -31,11 +31,11 @@ const animations = {
 }
 
 // fire-and-forget: play all animations and log when done
-runAnimationsSync(animations, parts, () => console.log("all done"));
+runAnimationsSync(animations, parts, () => core.log.debug("all done"));
 
 // or use the class directly to keep a reference
 const player = new SyncAnimationsPlayer(animations, parts);
-player.start(() => console.log("all done"));
+player.start(() => core.log.debug("all done"));
 ```
 
 ## The `animations` Parameter
